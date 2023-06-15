@@ -7,6 +7,7 @@ use \App\Http\Controllers\AttendanceController;
 use \App\Http\Controllers\CutisController;
 use \App\Http\Controllers\LembursController;
 use \App\Http\Controllers\MstusersController;
+use \App\Http\Controllers\YuserController;
 
 /*
 |--------------------------------------------------------------------------
@@ -50,3 +51,10 @@ Route::get('emp/{id}', [EmpController::class, 'show']);
 Route::patch('emp/{id}', [EmpController::class, 'update']);
 Route::delete('emp/{id}', [EmpController::class, 'destroy']);
 Route::get('emp', [EmpController::class, 'index']);
+
+// --- yuser ---
+Route::post('yuser/periksa', [YuserController::class, 'periksa']);
+Route::get('yuser/{id}', [YuserController::class, 'show']);
+Route::patch('yuser/{id}', [YuserController::class, 'update']);
+Route::delete('yuser/{id}', [YuserController::class, 'destroy']);
+Route::get('yuser', [YuserController::class, 'index']);

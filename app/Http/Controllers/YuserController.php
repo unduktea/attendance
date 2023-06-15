@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use App\Models\Yuser;
+use Illuminate\Support\Facades\DB;
 
 class YuserController extends Controller
 {
@@ -57,7 +58,10 @@ class YuserController extends Controller
     public function show(string $id)
     {
         $status = 200;
-        $result = Yuser::where("empid", "=", $id)->first();
+        $result = DB::table("yuser as yu")
+            ->select("yu.empid", "emp.empname")
+            ->leftJoin("emp", "emp.empid", "=", "yu.empid")
+            ->where("yu.empid", "=", $id)->first();
         if ($result == null) $status = 404;
         $json = json_encode($result);
         unset($result);
@@ -124,6 +128,30 @@ class YuserController extends Controller
         return response()->json([
             'empid' => $id,
             'pesan' => $pesan
+        ], $status)->header('Access-Control-Allow-Origin', '*')
+            ->header('Content-Type', 'application/json');
+    }
+
+    public function periksa(Request $request) {
+        $status = 200;
+        $cocok = false;
+        $nama = "";
+        $result = DB::table("yuser as yu")
+            ->select("yu.empid", "yu.password", "emp.empname")
+            ->leftJoin("emp", "emp.empid", "=", "yu.empid")
+            ->where("yu.empid", "=", $request->empid)->first();
+        if ($result != null) {
+            if ($request->sandi == $result->password) $cocok = true;
+            $nama = $result->empname;
+        }
+        else {
+            $status = 404;
+        }
+        // --- response ---
+        return response()->json([
+            'empid' => $request->empid,
+            'nama' => $nama,
+            'cocok' => $cocok
         ], $status)->header('Access-Control-Allow-Origin', '*')
             ->header('Content-Type', 'application/json');
     }
