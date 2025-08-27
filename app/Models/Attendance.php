@@ -13,7 +13,8 @@ class Attendance extends Model
     const UPDATED_AT = 'editdate';
     protected $table = 'attendance';
     protected $fillable = [
-        'empid', 'attdate', 'shiftid', 'actualin', 'actualout', 'late', 'early', 'ottotal', 'notes', 'inputdate', 'editdate', 'latitude', 'longitude', 'markas', 'suhu'
+        'empid', 'attdate', 'shiftid', 'actualin', 'actualout', 'late', 'early', 'ottotal', 'notes', 'inputdate',
+        'editdate', 'latitude', 'longitude', 'markas', 'suhu'
     ];
 
     protected $primaryKey = 'id';

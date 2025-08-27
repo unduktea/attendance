@@ -2,11 +2,13 @@
 
 namespace App\Http\Controllers;
 
+use Exception;
 use Illuminate\Http\Request;
 use App\Models\Attendance;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 
-class AttendanceController extends Controller
-{
+class AttendanceController extends Controller {
     /**
      * Display a listing of the resource.
      */
@@ -142,7 +144,7 @@ class AttendanceController extends Controller
         }
         else {
             $pesan = "Gagal delete data attendance";
-        };
+        }
 
         // --- response ---
         return response()->json([
@@ -154,15 +156,38 @@ class AttendanceController extends Controller
 
     public function list(Request $request)  {
         $status = 200;
-        $sesuatu = Attendance::select('empid', 'attdate', 'actualin', 'actualout', 'late', 'early', 'ottotal', 'latitude', 'longitude', 'markas', 'suhu')
-            ->where('empid', '=', $request->empId)
-            ->where('attdate', '>=', $request->tglAwal)
-            ->where('attdate', '<=', $request->tglAkhir);
-        $results = $sesuatu->get();
-        if (count($results) == 0) $status = 404;
-        $json = json_encode($results);
-        unset($results);
-        return response($json, $status)->header('Access-Control-Allow-Origin', '*')
-            ->header('Content-Type', 'application/json');
-    }
+        $tglAwal  = $request->filled('tglAwal') ? $request->tglAwal : date("Y-m-01");
+        $tglAkhir = $request->filled('tglAkhir') ? $request->tglAkhir : date("Y-m-d");
+        $kueri = DB::table("attendance as a")
+            ->leftJoin("emp as e", "a.empid", "=", "e.empid")
+            ->select('a.empid', 'e.empname', 'e.atasan1', 'a.attdate', 'a.actualin', 'a.actualout',
+                'a.late', 'a.early', 'a.ottotal', 'a.latitude', 'a.longitude', 'a.markas', 'a.suhu')
+            ->where(function ($q) use ($request) {
+                $q->where('a.empid', $request->empId)
+                    ->orWhere('e.atasan1', $request->empId);
+            })
+            ->whereBetween('a.attdate', [$tglAwal, $tglAkhir]);
+        //dd($kueri->toRawSql());
+        try {
+            $results = $kueri->get();
+            if ($results->isEmpty()) {
+                $status = 404;
+            }
+        }
+        catch (Exception $e) {
+            $status = 500;
+            Log::error('Query gagal', [
+                'sql' => method_exists($kueri, 'toRawSql') ? $kueri->toRawSql() : $kueri->toSql(),
+                'error' => $e->getMessage(),
+            ]);
+            $results = [
+                "empid" => $request->empId,
+                "tglAwal" => $tglAwal,
+                "tglAkhir" => $tglAkhir,
+                "pesan" => "error attendanceController.list: ".$e->getMessage(),
+            ];
+        }
+        return response()->json($results, $status)
+            ->header('Access-Control-Allow-Origin', '*');
+    }                   // --- end of function list ---
 }

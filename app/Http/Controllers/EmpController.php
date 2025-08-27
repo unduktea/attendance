@@ -112,7 +112,9 @@ class EmpController extends Controller
         return response()->json([
             'id' => $id,
             'pesan' => $pesan
-        ], $status)->header('Access-Control-Allow-Origin', '*')->header('Content-Type', 'application/json');
+        ], $status)
+            ->header('Access-Control-Allow-Origin', '*')
+            ->header('Content-Type', 'application/json');
     }
 
     /**
